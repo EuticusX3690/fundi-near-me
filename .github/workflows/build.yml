@@ -32,6 +32,10 @@ jobs:
           npx cap init "Fundi Near Me" com.euticus.fundinearme --web-dir www
           npx cap add android
 
+      - name: Add location permission
+        run: |
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />|' android/app/src/main/AndroidManifest.xml
+
       - name: Set app icon
         run: |
           sudo apt-get install -y imagemagick
