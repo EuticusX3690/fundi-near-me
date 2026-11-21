@@ -1,0 +1,87 @@
+[
+  {
+    "name": "Euticus",
+    "trade": "Mechanic",
+    "area": "Namugongo, Kampala",
+    "phone": "256791649911",
+    "about": "Mechanical engineer.",
+    "verified": true,
+    "services": [],
+    "photos": []
+  },
+  {
+    "name": "Sample Fundi 1",
+    "trade": "Plumber",
+    "area": "Kabale",
+    "phone": "256700000001",
+    "price": 20000,
+    "pay": [
+      "Cash",
+      "MTN MoMo",
+      "Airtel Money"
+    ],
+    "services": [
+      "Pipe fitting",
+      "Leak repair",
+      "Tap and toilet installation"
+    ],
+    "photos": [],
+    "about": "Sample fundi. Replace with a real one."
+  },
+  {
+    "name": "Sample Fundi 2",
+    "trade": "Electrician",
+    "area": "Kabale",
+    "phone": "256700000002",
+    "price": 20000,
+    "pay": [
+      "Cash",
+      "MTN MoMo",
+      "Airtel Money"
+    ],
+    "photos": [],
+    "about": "Sample fundi. Replace with a real one."
+  },
+  {
+    "name": "Sample Fundi 3",
+    "trade": "Phone repair",
+    "area": "Kampala",
+    "phone": "256700000003",
+    "price": 20000,
+    "pay": [
+      "Cash",
+      "MTN MoMo",
+      "Airtel Money"
+    ],
+    "photos": [],
+    "about": "Sample fundi. Replace with a real one."
+  },
+  {
+    "name": "Sample Fundi 4",
+    "trade": "Computer repair",
+    "area": "Kampala",
+    "phone": "256700000004",
+    "price": 20000,
+    "pay": [
+      "Cash",
+      "MTN MoMo",
+      "Airtel Money"
+    ],
+    "photos": [],
+    "about": "Sample fundi. Replace with a real one."
+  },
+  {
+    "name": "Sample Fundi 6",
+    "trade": "Welder",
+    "area": "Jinja",
+    "phone": "256700000006",
+    "price": 20000,
+    "pay": [
+      "Cash",
+      "MTN MoMo",
+      "Airtel Money"
+    ],
+    "photos": [],
+    "about": "Sample fundi. Replace with a real one."
+  }
+]
