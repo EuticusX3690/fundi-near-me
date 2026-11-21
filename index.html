@@ -291,7 +291,7 @@ document.getElementById("send").onclick = function(){
   if (!n || !p){ document.getElementById("jerr").textContent = "Please fill in your name and phone number."; return; }
   if (!document.getElementById("jid").checked){ document.getElementById("jerr").textContent = "You must agree to send a photo of your valid ID."; return; }
   var msg = "Hello, I want to join Fundi Near Me.\nName: " + n + "\nTrade: " + jt.value + "\nArea: " + document.getElementById("ja").value.trim() + "\nPhone: " + p + "\nStarting price: UGX " + document.getElementById("jpr").value + "\nFirst month free. Preferred way to pay after that: " + document.getElementById("jpay").value + "\nI will send a photo of my valid ID next.";
-  window.location.href = "https://wa.me/256776749517?text=" + encodeURIComponent(msg);
+  window.location.href = "https://wa.me/256791649911?text=" + encodeURIComponent(msg);
 };
 function openProfile(i){
   var f = FUNDIS[i], pv = document.getElementById("profileView");
