@@ -1,0 +1,26 @@
+{
+  "name": "Fundi Near Me",
+  "short_name": "Fundi",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#151B2B",
+  "theme_color": "#151B2B",
+  "description": "Find a skilled fundi near you.",
+  "icons": [
+    {
+      "src": "app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
