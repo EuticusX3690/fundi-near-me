@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join as Fundi - Fundi Near Me</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#F4F7F5;color:#16203A;padding:16px}
+.box{max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:18px}
+h2{margin:0 0 6px} p{color:#5F6B7F}
+label{display:block;font-size:.85rem;color:#5F6B7F;margin:12px 0 4px}
+input,select,textarea{width:100%;padding:12px;border:2px solid #DDE4E0;border-radius:12px;font:inherit;box-sizing:border-box}
+button{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:#2DB36A;color:#fff;font:inherit;font-weight:800;cursor:pointer}
+button:disabled{opacity:.6}
+.note{background:#E4F5EB;padding:12px;border-radius:12px;font-size:.9rem;margin-top:12px}
+a{color:#2DB36A}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>Join as a fundi</h2>
+<p>UGX 7,000 / month — First month FREE. Fill this, Admin will see you + get WhatsApp.</p>
+<label>Full name</label><input id="name" placeholder="e.g. John Kato">
+<label>Phone number</label><input id="phone" type="tel" placeholder="0776749517">
+<label>Trade</label>
+<select id="trade"><option>Plumber</option><option>Electrician</option><option>Phone repair</option><option>Computer repair</option><option>Mechanic</option><option>Welder</option><option>Handyman</option><option>Cleaning</option><option>Fumigation</option><option>Delivery</option></select>
+<label>Area / Location</label><input id="area" placeholder="e.g. Ntinda, Kampala">
+<label>Starting price (UGX)</label><input id="price" type="number" placeholder="e.g. 20000">
+<label>What do you do?</label><textarea id="about" rows="3" placeholder="e.g. Fix leaking pipes, install taps..."></textarea>
+<div class="note"><b>ID check by PICTURE (no video call):</b><br>After you tap Submit, WhatsApp will open. Please <b>attach a clear photo of your valid ID</b> in that WhatsApp chat before you tap Send.</div>
+<button id="btn" onclick="submitForm()">Submit — Save to Admin + WhatsApp</button>
+<p id="err" style="color:red"></p>
+<p id="ok" style="color:green"></p>
+<p><a href="./index.html">← Back to app</a></p>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",authDomain:"fundi-near-me-273c0.firebaseapp.com",projectId:"fundi-near-me-273c0",storageBucket:"fundi-near-me-273c0.firebasestorage.app",messagingSenderId:"729204944702",appId:"1:729204944702:web:27c89c9ecb453d8788866f"};
+const db=getFirestore(initializeApp(cfg));
+window.submitForm=async function(){
+var n=document.getElementById('name').value.trim();
+var p=document.getElementById('phone').value.trim();
+var t=document.getElementById('trade').value;
+var a=document.getElementById('area').value.trim();
+var pr=document.getElementById('price').value.trim();
+var ab=document.getElementById('about').value.trim();
+var err=document.getElementById('err');
+if(n.length<2){err.textContent='Please enter your name.';return}
+if(p.length<9){err.textContent='Please enter valid phone.';return}
+if(!a){err.textContent='Please enter your area.';return}
+document.getElementById('btn').disabled=true;
+document.getElementById('btn').textContent='Saving...';
+try{
+await addDoc(collection(db,"applications"),{name:n,phone:p,trade:t,area:a,price:pr,about:ab,status:"pending",createdAt:new Date().toISOString()});
+document.getElementById('ok').textContent='Saved to Admin! Opening WhatsApp...';
+}catch(e){document.getElementById('ok').textContent='Opening WhatsApp...';}
+var msg="NEW FUNDI APPLICATION\n\nName: "+n+"\nPhone: "+p+"\nTrade: "+t+"\nArea: "+a+"\nPrice: UGX "+pr+"\nAbout: "+ab+"\n\nI have attached a photo of my ID for verification. Please check Admin page.";
+setTimeout(function(){window.location.href="https://wa.me/256776749517?text="+encodeURIComponent(msg)},800);
+}
+</script>
+</body>
+</html>
