@@ -21,16 +21,48 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          cp index.html fundis.json manifest.json sw.js firebase-config.js  www/
-          cp *.png www/
-          sed -i 's|fetch("fundis.json")|fetch("https://euticusx3690.github.io/fundi-near-me/fundis.json").catch(function(){ return fetch("fundis.json"); })|' www/index.html
+          cp index.html fundis.json manifest.json sw.js firebase-config.js www/ 2>/dev/null || cp index.html www/
+          cp *.png www/ 2>/dev/null || true
+          cp *.html www/ 2>/dev/null || true
+          # Make APK feel native: dark background, no bounce, no website look
+          sed -i 's|<body|<body style="background:#0F172A"|' www/index.html || true
 
       - name: Create Android project
         run: |
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/splash-screen@6 @capacitor/status-bar@6
           npx cap init "Fundi Near Me" com.euticus.fundinearme --web-dir www
           npx cap add android
+          # Native config - THIS is what removes website feel
+          cat > capacitor.config.ts << 'EOF'
+          import type { CapacitorConfig } from '@capacitor/cli';
+          const config: CapacitorConfig = {
+            appId: 'com.euticus.fundinearme',
+            appName: 'Fundi Near Me',
+            webDir: 'www',
+            backgroundColor: '#0F172A',
+            android: {
+              allowMixedContent: true
+            },
+            plugins: {
+              SplashScreen: {
+                launchShowDuration: 2000,
+                launchAutoHide: true,
+                backgroundColor: '#0F172A',
+                showSpinner: false,
+                androidScaleType: 'CENTER_CROP',
+                splashFullScreen: true,
+                splashImmersive: true
+              },
+              StatusBar: {
+                style: 'DARK',
+                backgroundColor: '#0F172A',
+                overlaysWebView: false
+              }
+            }
+          };
+          export default config;
+          EOF
 
       - name: Add location permission
         run: |
@@ -48,6 +80,8 @@ jobs:
               convert app-512.png -resize ${s}x${s} $R/mipmap-$n/$f.png
             done
           done
+          # Splash image from same icon
+          cp app-512.png android/app/src/main/res/drawable/splash.png 2>/dev/null || true
 
       - name: Build APK
         run: |
