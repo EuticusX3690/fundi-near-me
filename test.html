@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><body>
+<h2>TEST</h2>
+<p id="a">Loading...</p>
+<p id="b"></p>
+<button id="signin" style="padding:15px;font-size:18px">Sign in with Google TEST</button>
+<p id="msg"></p>
+<script src="./firebase-config.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+try {
+  document.getElementById("a").textContent = "Config loaded: " + (window.__FIREBASE_CONFIG__ ? "YES - " + window.__FIREBASE_CONFIG__.projectId : "NO - MISSING");
+  const app = initializeApp(window.__FIREBASE_CONFIG__);
+  const auth = getAuth(app);
+  document.getElementById("b").textContent = "Firebase init: OK";
+  document.getElementById("signin").onclick = async () => {
+    document.getElementById("msg").textContent = "Button clicked, trying popup...";
+    const p = new GoogleAuthProvider();
+    try { await signInWithPopup(auth, p); document.getElementById("msg").textContent = "Popup SUCCESS"; }
+    catch (e) { document.getElementById("msg").textContent = "Popup failed: " + e.code + " - " + e.message + " | Trying redirect..."; await signInWithRedirect(auth, p); }
+  };
+} catch (e) {
+  document.getElementById("a").textContent = "ERROR: " + e.message;
+}
+</script>
+</body></html>
