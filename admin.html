@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundi Near Me Admin</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#F4F7F5;color:#16203A}
+main{max-width:560px;margin:0 auto;padding:20px 16px 60px}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 16px;min-height:44px;cursor:pointer;background:#167A45;color:#fff}
+button.grey{background:#fff;color:#16203A;border:2px solid #DDE4E0}
+button.red{background:#B91C1C}
+button:disabled{opacity:.5}
+.card{background:#fff;border:2px solid #DDE4E0;border-radius:16px;padding:14px;margin-bottom:12px}
+.meta{color:#4A5568;font-size:.95rem}
+.row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+label.chk{display:flex;gap:10px;align-items:center;margin-top:10px}
+label.chk input{width:22px;height:22px}
+input.ll{width:100%;padding:10px;border:2px solid #DDE4E0;border-radius:10px;font:inherit;margin-top:10px;box-sizing:border-box}
+#debug{background:#FFF3CD;border:2px solid #FFC107;padding:10px;border-radius:10px;font-size:13px;word-break:break-word}
+</style>
+</head>
+<body>
+<main>
+<h1>Fundi Near Me: Admin</h1>
+<p id="debug">Starting...</p>
+<div id="login"><button id="signin">Sign in with Google</button><p id="msg" class="meta"></p></div>
+<div id="panel" hidden>
+  <p class="meta" id="who"></p>
+  <button class="grey" id="signout">Sign out</button>
+  <h2>Pending applications</h2><div id="pending"></div>
+  <h2>Approved fundis</h2><div id="approved"></div>
+</div>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const ADMIN_EMAIL = "euticusmwendalogans@gmail.com";
+const debugEl = document.getElementById("debug");
+function log(t){ debugEl.textContent = t; console.log(t); }
+const cfg = {
+  apiKey: "AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",
+  authDomain: "fundi-near-me-273c0.firebaseapp.com",
+  projectId: "fundi-near-me-273c0",
+  storageBucket: "fundi-near-me-273c0.firebasestorage.app",
+  messagingSenderId: "729204944702",
+  appId: "1:729204944702:web:27c89c9ecb453d8788866f"
+};
+const $ = (id) => document.getElementById(id);
+function el(tag, text, cls){ const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+try {
+  const app = initializeApp(cfg), auth = getAuth(app), db = getFirestore(app);
+  log("Firebase OK - tap Sign In");
+  $("signin").onclick = async () => {
+    $("msg").textContent = "Trying popup...";
+    const p = new GoogleAuthProvider();
+    try { await signInWithPopup(auth, p); log("Popup SUCCESS"); }
+    catch (e) { $("msg").textContent = "Popup failed: " + e.code + " - trying redirect..."; await signInWithRedirect(auth, p); }
+  };
+  $("signout").onclick = () => signOut(auth);
+  let unsubs = [];
+  onAuthStateChanged(auth, (user) => {
+    unsubs.forEach((u) => u()); unsubs = [];
+    if (!user) { log("Not signed in - tap Sign In"); $("login").hidden = false; $("panel").hidden = true; return; }
+    log("Signed in as: " + user.email);
+    if (user.email !== ADMIN_EMAIL) { $("msg").textContent = "Not allowed: " + user.email; signOut(auth); return; }
+    $("login").hidden = true; $("panel").hidden = false; $("who").textContent = "Signed in as " + user.email;
+    unsubs.push(onSnapshot(query(collection(db, "applications"), where("status", "==", "pending")), (snap) => drawPending(snap.docs), (e) => { $("pending").textContent = "Error: " + e.message; }));
+    unsubs.push(onSnapshot(collection(db, "fundis"), (snap) => drawApproved(snap.docs), (e) => { $("approved").textContent = "Error: " + e.message; }));
+  });
+  function drawPending(docs){
+    const box = $("pending"); box.innerHTML = "";
+    if (!docs.length) { box.appendChild(el("p", "No pending applications.", "meta")); return; }
+    docs.forEach((d) => {
+      const a = d.data(), c = el("div", null, "card");
+      c.appendChild(el("b", a.name));
+      c.appendChild(el("div", (a.trade || a.skill || "") + " in " + (a.area || a.location || ""), "meta"));
+      c.appendChild(el("div", "Phone: " + a.phone + (a.price ? " | From UGX " + a.price : ""), "meta"));
+      const lab = el("label", null, "chk"), cb = document.createElement("input"); cb.type = "checkbox";
+      lab.appendChild(cb); lab.appendChild(el("span", "ID checked on a WhatsApp video call")); c.appendChild(lab);
+      const ll = document.createElement("input"); ll.className = "ll"; ll.placeholder = "Optional: lat, lng"; c.appendChild(ll);
+      const row = el("div", null, "row"), ok = el("button", "Approve"), no = el("button", "Reject"); ok.disabled = true; no.className = "red";
+      cb.onchange = () => { ok.disabled = !cb.checked; };
+      ok.onclick = async () => {
+        ok.disabled = true;
+        const data = { name: a.name, trade: a.trade || a.skill || "", area: a.area || a.location || "", phone: a.phone, about: "", verified: true, services: [], photos: [], approvedAt: serverTimestamp() };
+        if (a.price) data.price = a.price;
+        const parts = ll.value.split(",").map((s) => parseFloat(s));
+        if (parts.length === 2 && parts.every((n) => !isNaN(n))) { data.lat = parts[0]; data.lng = parts[1]; }
+        try { await setDoc(doc(db, "fundis", d.id), data); await updateDoc(doc(db, "applications", d.id), { status: "approved" }); }
+        catch (e) { alert("Could not approve: " + e.message); ok.disabled = false; }
+      };
+      no.onclick = async () => { if (confirm("Reject and delete?")) { try { await deleteDoc(doc(db, "applications", d.id)); } catch (e) { alert(e.message); } } };
+      row.appendChild(ok); row.appendChild(no); c.appendChild(row); box.appendChild(c);
+    });
+  }
+  function drawApproved(docs){
+    const box = $("approved"); box.innerHTML = "";
+    if (!docs.length) { box.appendChild(el("p", "No approved fundis yet.", "meta")); return; }
+    docs.forEach((d) => {
+      const f = d.data(), c = el("div", null, "card");
+      c.appendChild(el("b", f.name));
+      c.appendChild(el("div", (f.trade || f.skill || "") + " in " + (f.area || f.location || "") + " | " + f.phone, "meta"));
+      const row = el("div", null, "row"), rm = el("button", "Remove", "grey");
+      rm.onclick = async () => { if (confirm("Remove " + f.name + "?")) { try { await deleteDoc(doc(db, "fundis", d.id)); } catch (e) { alert(e.message); } } };
+      row.appendChild(rm); c.appendChild(row); box.appendChild(c);
+    });
+  }
+} catch (e) { log("FATAL: " + e.message); }
+</script>
+</body>
+</html>
