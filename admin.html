@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin - Fundi Near Me</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#0F172A;color:#fff;padding:14px;padding-bottom:60px}
+.wrap{max-width:640px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center}
+a{color:#2DB36A;text-decoration:none}
+h2{margin:6px 0 2px}.muted{color:#94A3B8;font-size:.9rem}
+.tabs{display:flex;gap:8px;margin:14px 0}.tabs button{flex:1;padding:12px;border-radius:999px;border:1px solid #2E3A52;background:#1E293B;color:#fff;font-weight:800;cursor:pointer}
+.tabs button.on{background:#2DB36A}
+.card{background:#1E293B;border:1px solid #2E3A52;border-radius:16px;padding:14px;margin-top:12px}
+.card b{font-size:1.1rem}.small{color:#94A3B8;font-size:.9rem;margin-top:4px}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.row button{flex:1;padding:12px;border-radius:12px;border:0;font-weight:800;cursor:pointer}
+.approve{background:#2DB36A;color:#fff}.reject{background:#EF4444;color:#fff}.wa{background:#E4F5EB;color:#1A7A43}
+.btn{padding:10px 14px;border-radius:999px;border:1px solid #2E3A52;background:#1E293B;color:#fff;cursor:pointer;font:inherit}
+.badge{display:inline-block;background:#FEF3C7;color:#92400E;padding:3px 8px;border-radius:999px;font-size:.75rem;font-weight:800;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><b>🔧 Fundi Near Me — Admin</b><a href="./index.html">Home →</a></div>
+<p class="muted">Admin contacts: Call 0776749517 • WhatsApp 0791649911 • euticusmwendalogans@gmail.com<br>Website: euticusmwenda3.netlify.app</p>
+<h2>Pending Applications <span id="pcount" class="badge">0</span></h2>
+<div class="tabs"><button id="tb-pending" class="on" onclick="showTab('pending')">Pending</button><button id="tb-fundis" onclick="showTab('fundis')">Approved Fundis</button></div>
+<div id="info" class="muted">Loading...</div>
+<div id="list"></div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",authDomain:"fundi-near-me-273c0.firebaseapp.com",projectId:"fundi-near-me-273c0",storageBucket:"fundi-near-me-273c0.firebasestorage.app",messagingSenderId:"729204944702",appId:"1:729204944702:web:27c89c9ecb453d8788866f"};
+const db=getFirestore(initializeApp(cfg));
+let tab='pending';
+let apps=[], fundis=[];
+function esc(s){var d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML}
+window.showTab=function(t){tab=t;document.getElementById('tb-pending').classList.toggle('on',t==='pending');document.getElementById('tb-fundis').classList.toggle('on',t==='fundis');render()};
+function ph(p){var x=String(p||'').replace(/\D/g,'');if(x.startsWith('0'))x='256'+x.slice(1);return x}
+window.render=function(){
+var el=document.getElementById('list');
+var list=tab==='pending'?apps:fundis;
+document.getElementById('pcount').textContent=apps.length;
+document.getElementById('info').textContent=list.length+' item(s) — '+tab;
+if(!list.length){el.innerHTML='<div class="card" style="text-align:center;color:#94A3B8">Nothing here yet.<br>New applications from apply2.html will show in Pending.</div>';return}
+el.innerHTML=list.map((f,i)=>{
+var wa='https://wa.me/'+ph(f.phone)+'?text='+encodeURIComponent('Hi '+f.name+', this is Fundi Near Me Admin. Your application: '+f.trade+' in '+f.area);
+var waAdmin='https://wa.me/256791649911?text='+encodeURIComponent('Hi Admin, I am '+f.name+' ('+f.trade+', '+f.area+'). I have sent my ID PHOTO on WhatsApp 0791649911 for verification.');
+return '<div class="card"><b>'+esc(f.name)+'</b><div class="small">'+esc(f.trade)+' • 📍 '+esc(f.area)+'</div><div class="small">📞 '+esc(f.phone)+' • From UGX '+(f.price?Number(f.price).toLocaleString():'-')+'</div><div class="small">'+esc(f.about||'')+'</div><div class="small" style="color:#FBBF24">⚠️ ID check: Ask fundi to send ID PHOTO on WhatsApp 0791649911 (NO video call). Check photo, then Approve.</div><div class="row">'+(tab==='pending'?'<button class="approve" onclick="approve('+i+')">✓ Approve</button><button class="reject" onclick="rejectApp('+i+')">✕ Reject</button>':'<button class="reject" onclick="removeFundi('+i+')">Remove</button>')+'<button class="wa" onclick="window.open(\''+wa+'\')">💬 Message Fundi</button></div></div>'}).join('')
+};
+window.approve=async function(i){
+var f=apps[i];if(!confirm('Approve '+f.name+'? Did you check ID PHOTO on WhatsApp 0791649911?'))return;
+try{await addDoc(collection(db,'fundis'),{name:f.name,phone:f.phone,trade:f.trade,area:f.area,price:f.price,about:f.about,approvedAt:new Date().toISOString()});await deleteDoc(doc(db,'applications',f.id));alert('Approved! Now live on Home Page.');load();}catch(e){alert('Error: '+e.message)}
+};
+window.rejectApp=async function(i){if(!confirm('Reject '+apps[i].name+'?'))return;try{await deleteDoc(doc(db,'applications',apps[i].id));load();}catch(e){alert(e.message)}};
+window.removeFundi=async function(i){if(!confirm('Remove '+fundis[i].name+' from Home Page?'))return;try{await deleteDoc(doc(db,'fundis',fundis[i].id));load();}catch(e){alert(e.message)}};
+async function load(){
+document.getElementById('info').textContent='Loading...';
+try{var a=await getDocs(collection(db,'applications'));apps=a.docs.map(d=>({id:d.id,...d.data()}));var f=await getDocs(collection(db,'fundis'));fundis=f.docs.map(d=>({id:d.id,...d.data()}));}catch(e){document.getElementById('info').textContent='Error: '+e.message}
+render();
+}
+load();
+</script>
+</body>
+</html>
