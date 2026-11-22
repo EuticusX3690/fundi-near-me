@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Near Me</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{background:#0F172A;color:white;padding:16px;padding-bottom:90px}
+body.light{background:#F1F5F9;color:#0F172A}
+body.light .card,body.light .box,body.light .cat{background:white;color:#0F172A;border:1px solid #E2E8F0}
+/* SPLASH - Shows on app start */
+#splash{position:fixed;inset:0;background:#0F172A;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s}
+#splash.hide{opacity:0;pointer-events:none}
+#splash h1{font-size:36px}#splash h1 span{color:#22C55E}#splash p{color:#94A3B8;margin-top:8px;font-size:14px}
+#splash .loader{width:40px;height:40px;border:3px solid #1E293B;border-top:3px solid #22C55E;border-radius:50%;margin-top:22px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.top{display:flex;align-items:center;justify-content:space-between}
+.top h1{font-size:26px}.top h1 span{color:#22C55E}
+.gear{font-size:22px;cursor:pointer;background:#1E293B;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.search{margin:14px 0}.search input{width:100%;padding:13px;border-radius:14px;border:0;background:#1E293B;color:white;outline:none}
+.cats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:12px 0}
+.cat{background:#1E293B;border-radius:16px;padding:14px 6px;text-align:center;cursor:pointer}.cat div{font-size:28px}.cat b{font-size:12px;display:block;margin-top:6px}
+.btn{background:#22C55E;color:#0F172A;border:0;padding:13px 18px;border-radius:12px;font-weight:800;width:100%;cursor:pointer}
+.btn2{background:transparent;color:#22C55E;border:2px solid #22C55E;padding:11px;border-radius:12px;font-weight:800;width:100%;cursor:pointer}
+.btnGrad{background:linear-gradient(90deg,#A7F3D0,#FBCFE8);color:#0F172A;border:0;padding:13px;border-radius:12px;font-weight:800;width:100%;cursor:pointer}
+.card{background:#1E293B;border-radius:20px;padding:14px;margin-bottom:12px;cursor:pointer}
+.cardTop{display:flex;gap:12px;align-items:center}
+.card img.avatar{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #22C55E;flex-shrink:0}
+.badge{background:#DCFCE7;color:#166534;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800}
+.rowBtns{display:flex;gap:10px;margin-top:12px}.rowBtns button{flex:1}
+.promo{background:#1E293B;border-radius:20px;padding:20px;text-align:center;margin-top:16px}
+input,select,textarea{width:100%;padding:12px;border-radius:12px;border:0;background:#1E293B;color:white;margin:6px 0;outline:none}
+label{font-size:13px;color:#CBD5E1;margin-top:12px;display:block}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;overflow-y:auto;padding:16px;z-index:99}.modal.open{display:block}
+.box{background:#1E293B;border-radius:20px;padding:20px;max-width:480px;margin:20px auto}
+.close{float:right;font-size:22px;cursor:pointer}
+.works{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.works img{width:100%;height:130px;object-fit:cover;border-radius:12px;cursor:pointer}
+.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.preview img{width:70px;height:70px;object-fit:cover;border-radius:10px}
+.hidden{display:none}.adminCard{background:#0F172A;border:1px solid #334155;border-radius:14px;padding:12px;margin-bottom:10px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#0F172A;border-top:1px solid #1E293B;display:flex;padding:10px 0;z-index:50}
+.nav div{flex:1;text-align:center;font-size:12px;color:#94A3B8;cursor:pointer}.nav div.active{color:#22C55E;font-weight:800}
+#settings{position:fixed;top:0;right:0;bottom:0;width:88%;max-width:360px;background:#1E293B;z-index:200;transform:translateX(100%);transition:.3s;padding:20px;overflow-y:auto}
+#settings.open{transform:translateX(0)}
+.sHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.sBanner{background:linear-gradient(90deg,#22C55E,#F472B6);border-radius:16px;padding:16px;text-align:center;color:white}
+.sBanner button{background:white;border:0;padding:9px 16px;border-radius:20px;font-weight:800;margin-top:10px;cursor:pointer}
+.sRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #334155}
+.sRow .left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.sRow .left span{font-size:15px;white-space:nowrap}
+.sRow .right{font-size:13px;color:#CBD5E1;text-align:right;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.themeGroup{display:flex;background:#0F172A;border-radius:20px;padding:3px;gap:2px}
+.themeGroup button{border:0;background:transparent;color:#94A3B8;padding:6px 12px;border-radius:16px;font-size:12px;cursor:pointer}
+.themeGroup button.active{background:#22C55E;color:white;font-weight:800}
+.logoutBtn{background:#EF4444;color:white;border:0;padding:8px 16px;border-radius:20px;font-weight:800;cursor:pointer}
+.sFoot{text-align:center;color:#94A3B8;font-size:12px;line-height:1.5;margin-top:18px}
+.handleTop{text-align:center;padding:6px 0 14px}
+.handleTop img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #22C55E}
+.handleTop h2{margin-top:10px}.handleTop .handle{color:#22C55E;font-weight:700;margin:4px 0}
+.handleTop small{color:#94A3B8}
+.aboutBox{background:#0F172A;border-radius:14px;padding:14px;margin-top:14px;line-height:1.6;font-size:14px;color:#E2E8F0}
+.statRow{display:flex;gap:8px;margin-top:12px}.statRow div{flex:1;background:#0F172A;border-radius:12px;padding:10px;text-align:center}.statRow b{display:block}.statRow span{font-size:11px;color:#94A3B8}
+</style>
+</head>
+<body>
+<!-- SPLASH SCREEN -->
+<div id="splash"><div style="font-size:70px;">🔧</div><h1>Fundi <span>Near Me</span></h1><p>Find trusted fundis near you</p><div class="loader"></div></div>
+
+<div class="top"><div id="logoArea"><h1>Fundi <span>Near Me</span></h1><p style="color:#94A3B8;font-size:13px;">Find trusted fundis in Kampala</p></div><div class="gear" onclick="openSettings()">⚙️</div></div>
+
+<div id="mainView">
+  <div class="search"><input id="searchInput" placeholder="Search plumber, electrician, @handle..." oninput="render()"></div>
+  <div class="cats" id="catGrid"></div>
+  <div style="display:flex;gap:10px;"><button class="btnGrad" onclick="render()">See all fundis</button><button class="btn2" onclick="openModal('applyModal')">Join as a fundi</button></div>
+  <p id="countText" style="color:#94A3B8;margin:16px 0 10px;"></p>
+  <div id="fundiList"></div>
+  <div class="promo"><h3>Are you a fundi?</h3><p style="color:#94A3B8;font-size:13px;margin:8px 0;">UGX 7,000 / month — First month FREE. ID check by PICTURE — send ID photo on WhatsApp 0791649911.</p><button class="btn2" onclick="openModal('applyModal')">Join as a fundi →</button></div>
+</div>
+
+<div id="adminView" class="hidden"><h2>Admin Panel</h2><div style="display:flex;gap:8px;margin:12px 0;"><button class="btn2" onclick="showAdminTab('pending')">Pending</button><button class="btn2" onclick="showAdminTab('approved')">Approved</button></div><div id="pendingList"></div><div id="approvedList" class="hidden"></div><button class="btn2" style="margin-top:16px;" onclick="backToMain()">← Back to App</button></div>
+
+<div id="settings"><div class="sHead"><h2>Settings</h2><span style="font-size:22px;cursor:pointer;" onclick="closeSettings()">✕</span></div><div class="sBanner"><b>🎡 Free Spin — Coming Soon!</b><p style="font-size:13px;margin-top:4px;">Spin daily to win discounts on fundi services.</p><button>Try Free Spin</button></div><div class="sRow"><div class="left"><span>📞</span><span>Call</span></div><div class="right">0776749517</div></div><div class="sRow"><div class="left"><span>💬</span><span>WhatsApp</span></div><div class="right">0791649911</div></div><div class="sRow"><div class="left"><span>📧</span><span>Email</span></div><div class="right">euticusmwendalogans@gmail.com</div></div><div class="sRow"><div class="left"><span>🌐</span><span>Website</span></div><div class="right">euticusmwenda3.netlify.app</div></div><div class="sRow"><div class="left"><span>📄</span><span>Terms & Agreements</span></div><div class="right" style="color:#94A3B8;">View →</div></div><div class="sRow"><div class="left"><span>🎨</span><span>Theme</span></div><div class="themeGroup"><button onclick="setTheme('dark',this)">Dark</button><button onclick="setTheme('light',this)">Light</button><button class="active" onclick="setTheme('auto',this)">Auto</button></div></div><div class="sRow" style="border-bottom:0;"><div class="left"><span>🚪</span><span>Log Out</span></div><button class="logoutBtn">Log Out</button></div><div class="sFoot">Fundi Near Me • Kampala, Uganda<br>Version 2.0 • ID check by PHOTO</div></div>
+
+<div class="modal" id="profileModal"><div class="box"><span class="close" onclick="closeModal('profileModal')">✕</span><div id="profileContent"></div></div></div>
+
+<div class="modal" id="applyModal"><div class="box"><span class="close" onclick="closeModal('applyModal')">✕</span><h2>Apply as Fundi</h2>
+<label>Full Name</label><input id="fName" placeholder="e.g. John Kato">
+<label>Your Handle</label><input id="fHandle" placeholder="e.g. @johnkato">
+<label>Skill</label><select id="fSkill"><option>Plumber</option><option>Electrician</option><option>Carpenter</option><option>Painter</option><option>Mechanic</option><option>Mason</option><option>Cleaner</option><option>Welder</option><option>Computer repair</option><option>Handyman</option><option>Fumigation</option><option>Delivery</option></select>
+<label>Area</label><select id="fArea"><option>Kampala</option><option>Ntinda</option><option>Kawempe</option><option>Najjera</option><option>Entebbe</option><option>Makindye</option></select>
+<label>WhatsApp Number</label><input id="fPhone" placeholder="0700...">
+<label>Price From (UGX)</label><input id="fPrice" placeholder="e.g. 2000">
+<label>About You</label><textarea id="fAbout" rows="3" placeholder="e.g. I have 5 years experience cleaning houses in Kampala. I bring my own materials. Fast and trusted."></textarea>
+<label>Your Photo (face clear)</label><input type="file" id="profilePhoto" accept="image/*"><img id="profilePreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:none;margin-top:8px;">
+<label>Your Works (up to 4 photos)</label><input type="file" id="workPhotos" accept="image/*" multiple><div id="workPreview" class="preview"></div>
+<button class="btn" id="submitBtn" onclick="submitFundi()" style="margin-top:16px;">Submit Application</button>
+<p style="font-size:12px;color:#94A3B8;text-align:center;margin-top:10px;">Admin will approve you, then you appear in list.</p></div></div>
+
+<div class="nav"><div class="active">🏠<br>Home</div><div onclick="render()">🔍<br>Explore</div><div onclick="openModal('applyModal')">👷<br>Join</div><div onclick="openSettings()">💬<br>Contact</div></div>
+
+<script>
+// ==== ALREADY SET FOR YOU ====
+const CLOUD_NAME = "sonxwzrk";
+const UPLOAD_PRESET = "fundi_upload";
+// =============================
+setTimeout(()=>{document.getElementById('splash').classList.add('hide');},2000);
+const cats=[["💻","Computer repair"],["🔧","Mechanic"],["🔥","Welder"],["🛠️","Handyman"],["🧹","Cleaning"],["🐜","Fumigation"],["🛵","Delivery"],["🔌","Electrician"]];
+document.getElementById('catGrid').innerHTML=cats.map(c=>`<div class="cat" onclick="filterCat('${c[1]}')"><div>${c[0]}</div><b>${c[1]}</b></div>`).join('');
+function filterCat(c){document.getElementById('searchInput').value=c==="Computer repair"?"Computer":c;render();}
+function makeHandle(name){return "@"+name.toLowerCase().replace(/[^a-z0-9]/g,"");}
+let fundis=JSON.parse(localStorage.getItem('fundis')||'[]');
+let pending=JSON.parse(localStorage.getItem('pending')||'[]');
+if(fundis.length===0&&pending.length===0){fundis=[{name:"Anzo",handle:"@anzo",skill:"Cleaning",area:"Kampala",phone:"0791649911",price:"2000",about:"I clean houses and offices in Kampala. I have 3 years experience, I bring my own cleaning materials and I work fast and clean. Trusted by many homes in Kampala.",photo:"https://i.pravatar.cc/200?img=12",works:["https://picsum.photos/400/300?1","https://picsum.photos/400/300?2"]}];localStorage.setItem('fundis',JSON.stringify(fundis));}
+fundis.forEach(f=>{if(!f.handle)f.handle=makeHandle(f.name);if(!f.about)f.about="Experienced "+f.skill.toLowerCase()+" in "+f.area+". Trusted and available. Chat me on WhatsApp for quick service.";});
+function save(){localStorage.setItem('fundis',JSON.stringify(fundis));localStorage.setItem('pending',JSON.stringify(pending));}
+function render(){
+  const q=(document.getElementById('searchInput').value||"").toLowerCase();
+  const filtered=fundis.filter(f=>(f.name+" "+f.handle+" "+f.skill+" "+f.area).toLowerCase().includes(q));
+  document.getElementById('countText').textContent=filtered.length+" fundi(s) found";
+  document.getElementById('fundiList').innerHTML=filtered.map((f)=>{
+    const idx=fundis.indexOf(f);
+    return `<div class="card" onclick="openProfile(${idx})"><div class="cardTop"><img class="avatar" src="${f.photo}"><div style="flex:1"><b>${f.name} <span class="badge">✓ Verified</span></b><br><small style="color:#22C55E;font-weight:700;">${f.handle}</small><br><small style="color:#94A3B8;">${f.skill} • 📍 ${f.area}</small><br><b style="margin-top:6px;display:block;">From UGX ${f.price||'2,000'}</b></div></div><div class="rowBtns"><button class="btn" onclick="event.stopPropagation();window.location.href='tel:${f.phone}'">📞 Call</button><button class="btn" style="background:#DCFCE7;color:#166534;" onclick="event.stopPropagation();window.open('https://wa.me/256${f.phone.replace(/^0/,'')}')">💬 WhatsApp</button></div></div>`;
+  }).join('')||"<p style='color:#94A3B8;text-align:center;'>No fundi found</p>";
+}
+function openProfile(i){
+  const f=fundis[i];
+  document.getElementById('profileContent').innerHTML=`
+  <div class="handleTop">
+    <img src="${f.photo}">
+    <h2>${f.name} <span class="badge">✓ Verified</span></h2>
+    <div class="handle">${f.handle}</div>
+    <small>${f.skill} • 📍 ${f.area} • From UGX ${f.price||'2,000'}</small>
+    <div class="statRow"><div><b>${(f.works||[]).length}</b><span>Works</span></div><div><b>⭐ 5.0</b><span>Rating</span></div><div><b>${f.area}</b><span>Area</span></div></div>
+  </div>
+  <h3>About ${f.name.split(' ')[0]}</h3>
+  <div class="aboutBox">${f.about}</div>
+  <h3 style="margin-top:18px;">📸 My Works (${(f.works||[]).length})</h3>
+  <div class="works">${(f.works||[]).map(w=>`<img src="${w}" onclick="window.open('${w}')">`).join('')||'<p style="color:#94A3B8;">No work photos yet</p>'}</div>
+  <a href="https://wa.me/256${f.phone.replace(/^0/,'')}" target="_blank"><button class="btn" style="margin-top:18px;">💬 Chat on WhatsApp</button></a>
+  <a href="tel:${f.phone}"><button class="btn2" style="width:100%;margin-top:8px;">📞 Call ${f.phone}</button></a>
+  <button class="btn2" style="margin-top:8px;" onclick="navigator.clipboard.writeText('${f.handle}');alert('Handle copied: ${f.handle}')">🔗 Share Handle</button>`;
+  openModal('profileModal');
+}
+function openModal(id){document.getElementById(id).classList.add('open');}function closeModal(id){document.getElementById(id).classList.remove('open');}
+function openSettings(){document.getElementById('settings').classList.add('open');}function closeSettings(){document.getElementById('settings').classList.remove('open');}
+function setTheme(t,el){document.querySelectorAll('.themeGroup button').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.body.classList.toggle('light',t==='light');}
+async function uploadToCloudinary(file){const fd=new FormData();fd.append("file",file);fd.append("upload_preset",UPLOAD_PRESET);const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{method:"POST",body:fd});const d=await res.json();if(!d.secure_url)throw new Error("Preset / Cloud Name wrong");return d.secure_url;}
+document.getElementById('profilePhoto').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const img=document.getElementById('profilePreview');img.src=ev.target.result;img.style.display='block';};r.readAsDataURL(f);});
+document.getElementById('workPhotos').addEventListener('change',e=>{const box=document.getElementById('workPreview');box.innerHTML="";[...e.target.files].slice(0,4).forEach(f=>{const r=new FileReader();r.onload=ev=>{box.innerHTML+=`<img src="${ev.target.result}">`;};r.readAsDataURL(f);});});
+async function submitFundi(){
+  const btn=document.getElementById('submitBtn');btn.textContent="Uploading photos... please wait";btn.disabled=true;
+  try{
+    const name=document.getElementById('fName').value.trim();const phone=document.getElementById('fPhone').value.trim();
+    if(!name||!phone){alert("Fill name + phone");btn.textContent="Submit Application";btn.disabled=false;return;}
+    let handle=document.getElementById('fHandle').value.trim();if(!handle)handle=makeHandle(name);if(!handle.startsWith('@'))handle='@'+handle;
+    let profileUrl="";let workUrls=[];const pFile=document.getElementById('profilePhoto').files[0];if(pFile)profileUrl=await uploadToCloudinary(pFile);
+    const wFiles=[...document.getElementById('workPhotos').files].slice(0,4);for(let f of wFiles){workUrls.push(await uploadToCloudinary(f));}
+    pending.push({name,handle,skill:document.getElementById('fSkill').value,area:document.getElementById('fArea').value,phone,price:document.getElementById('fPrice').value||"2000",about:document.getElementById('fAbout').value.trim()||"Experienced fundi. Trusted and available. Chat me on WhatsApp.",photo:profileUrl||"https://via.placeholder.com/120",works:workUrls});
+    save();closeModal('applyModal');alert("Sent! Admin will approve you soon. Your handle is "+handle);
+  }catch(e){alert("Upload failed. "+e.message);}btn.textContent="Submit Application";btn.disabled=false;
+}
+let taps=0;document.getElementById('logoArea').addEventListener('click',()=>{taps++;if(taps>=5){taps=0;document.getElementById('mainView').classList.add('hidden');document.getElementById('adminView').classList.remove('hidden');renderAdmin();}setTimeout(()=>taps=0,2000);});
+function backToMain(){document.getElementById('adminView').classList.add('hidden');document.getElementById('mainView').classList.remove('hidden');render();}
+function showAdminTab(t){document.getElementById('pendingList').classList.toggle('hidden',t!=='pending');document.getElementById('approvedList').classList.toggle('hidden',t!=='approved');renderAdmin();}
+function renderAdmin(){
+  document.getElementById('pendingList').innerHTML=pending.length?pending.map((f,i)=>`<div class="adminCard"><div style="display:flex;gap:10px;align-items:center;"><img src="${f.photo}" style="width:55px;height:55px;border-radius:50%;object-fit:cover;"><div style="flex:1"><b>${f.name}</b><br><small style="color:#22C55E;">${f.handle}</small><br><small>${f.skill} • ${f.area} • ${f.phone}</small><br><small>${f.about||''}</small></div></div><div class="works">${(f.works||[]).map(w=>`<img src="${w}">`).join('')}</div><div style="display:flex;gap:8px;margin-top:10px;"><button class="btn" onclick="approve(${i})">Approve</button><button class="btn2" onclick="reject(${i})">Reject</button></div></div>`).join(''):"<p style='color:#94A3B8;'>No pending</p>";
+  document.getElementById('approvedList').innerHTML=fundis.map((f,i)=>`<div class="adminCard"><div style="display:flex;gap:10px;align-items:center;"><img src="${f.photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;"><b>${f.name}</b><small> ${f.handle} - ${f.skill}</small><button class="btn2" style="margin-left:auto;" onclick="removeFundi(${i})">Delete</button></div></div>`).join('');
+}
+function approve(i){fundis.push(pending[i]);pending.splice(i,1);save();renderAdmin();render();alert("Approved!");}function reject(i){pending.splice(i,1);save();renderAdmin();}function removeFundi(i){if(confirm("Delete?")){fundis.splice(i,1);save();renderAdmin();render();}}
+render();
+</script>
+</body>
+</html>
