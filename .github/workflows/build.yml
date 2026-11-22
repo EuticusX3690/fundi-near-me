@@ -21,7 +21,7 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          cp index.html fundis.json manifest.json sw.js www/
+          cp index.html fundis.json manifest.json sw.js firebase-config.js  www/
           cp *.png www/
           sed -i 's|fetch("fundis.json")|fetch("https://euticusx3690.github.io/fundi-near-me/fundis.json").catch(function(){ return fetch("fundis.json"); })|' www/index.html
 
