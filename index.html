@@ -331,7 +331,7 @@ var MYPOS = null, CUR = "home", FROM = "home";
 function dist(p, f){ var r = Math.PI / 180, dLat = (f.lat - p.lat) * r, dLng = (f.lng - p.lng) * r; var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(p.lat * r) * Math.cos(f.lat * r) * Math.sin(dLng / 2) * Math.sin(dLng / 2); return 2 * 6371 * Math.asin(Math.sqrt(h)); }
 function reportLink(f){
   var m = "Report a fundi\nFundi: " + f.name + " (" + f.trade + ", " + f.area + ", " + f.phone + ")\nMy name: " + (USER ? USER.name + " " + USER.phone : "") + "\nWhat went wrong: ";
-  return "https://wa.me/256776749517?text=" + encodeURIComponent(m);
+  return "https://wa.me/2567916411?text=" + encodeURIComponent(m);
 }
 document.getElementById("nearBtn").onclick = function(){
   var m = document.getElementById("nearMsg");
