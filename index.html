@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundi Near Me — Find trusted fundis</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0F172A;--card:#1E293B;--card2:#1A2338;--text:#fff;--muted:#94A3B8;--green:#2DB36A;--border:#2E3A52}
+body.light{--bg:#F4F7F5;--card:#fff;--card2:#fff;--text:#16203A;--muted:#5F6B7F;--border:#DDE4E0}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding-bottom:80px}
+.top{max-width:640px;margin:0 auto;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:1.5rem;font-weight:900}.logo span{color:var(--green)}
+.dot{display:inline-block;width:10px;height:10px;background:#22C55E;border-radius:50%;margin-right:6px}
+.gear{font-size:1.5rem;background:none;border:0;cursor:pointer;color:var(--text)}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+h2{font-size:1.7rem;line-height:1.1;margin:6px 0 14px}.green{color:var(--green)}
+.search{display:flex;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 6px 6px 16px;align-items:center}
+.search input{flex:1;background:none;border:0;outline:0;color:var(--text);font:inherit}
+.search button{width:48px;height:48px;border-radius:50%;background:var(--green);border:0;color:#fff;font-size:1.2rem;cursor:pointer}
+.box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;margin-top:16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.cat{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px 4px;text-align:center;cursor:pointer;font-size:.8rem;font-weight:700;line-height:1.2}
+.cat .ic{font-size:1.7rem;display:block;margin-bottom:6px}
+.cat.active{outline:2px solid var(--green)}
+.btnrow{display:flex;gap:10px;margin-top:14px}
+.btn{flex:1;padding:13px;border-radius:12px;border:0;font:inherit;font-weight:800;cursor:pointer;text-align:center;text-decoration:none}
+.btn-light{background:linear-gradient(90deg,#A7F3D0,#FBCFE8);color:#16203A}
+.btn-green{background:transparent;border:2px solid var(--green);color:var(--green)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:12px}
+.card h3{margin:0}.meta{color:var(--muted);font-size:.9rem}.price{font-weight:800;margin-top:8px}
+.row{display:flex;gap:8px;margin-top:10px}.call,.wa{flex:1;text-align:center;padding:11px;border-radius:12px;text-decoration:none;font-weight:800}
+.call{background:var(--green);color:#fff}.wa{background:#E4F5EB;color:#1A7A43}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0;z-index:20}
+.bottom div{text-align:center;font-size:.75rem;color:var(--muted);cursor:pointer}.bottom .on{color:var(--green);font-weight:800}.bottom .ic{font-size:1.4rem;display:block}
+.drawer{position:fixed;top:0;right:-100%;width:88%;max-width:360px;height:100%;background:var(--card);z-index:50;transition:.3s;padding:18px;overflow:auto;border-left:1px solid var(--border)}
+.drawer.open{right:0}.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:40}.overlay.show{display:block}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);gap:10px}
+.srow a{color:var(--text);text-decoration:none;text-align:right;font-size:.9rem}
+.theme{display:flex;gap:6px}.theme button{padding:8px 10px;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}.theme button.on{background:var(--green);color:#fff}
+.close{background:none;border:0;font-size:1.4rem;color:var(--text);cursor:pointer}
+.spin{margin-top:14px;background:linear-gradient(90deg,#2DB36A,#F472B6);border-radius:14px;padding:14px;text-align:center;color:#fff}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="toggleSettings(false)"></div>
+<div class="drawer" id="drawer">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Settings</h3><button class="close" onclick="toggleSettings(false)">✕</button></div>
+<div class="spin"><b>🎡 Free Spin — Coming Soon!</b><br><small>Spin daily to win discounts on fundi services.</small><br><button onclick="alert('Free Spin coming soon! Stay tuned.')" style="margin-top:8px;padding:9px 16px;border:0;border-radius:999px;background:#fff;font-weight:800;cursor:pointer">Try Free Spin</button></div>
+<div class="srow"><span>📞 Call</span><a href="tel:+256776749517">0776749517</a></div>
+<div class="srow"><span>💬 WhatsApp</span><a href="https://wa.me/256791649911">0791649911</a></div>
+<div class="srow"><span>📧 Email</span><a href="mailto:euticusmwendalogans@gmail.com">euticusmwendalogans@gmail.com</a></div>
+<div class="srow"><span>🌐 Website</span><a href="https://euticusmwenda3.netlify.app">euticusmwenda3.netlify.app</a></div>
+<div class="srow"><span>📄 Terms & Agreements</span><a href="#" onclick="alert('Terms & Agreements: Fundi Near Me connects customers to verified fundis. Fundis are verified by ID PHOTO on WhatsApp (no video call). Prices may vary. Always confirm price before work starts.')">View →</a></div>
+<div class="srow"><span>🎨 Theme</span><div class="theme"><button id="t-dark" onclick="setTheme('dark')">Dark</button><button id="t-light" onclick="setTheme('light')">Light</button><button id="t-auto" onclick="setTheme('auto')">Auto</button></div></div>
+<div class="srow"><span>🚪 Log Out</span><button onclick="localStorage.clear();alert('Logged out');location.reload()" style="padding:8px 14px;border-radius:999px;border:0;background:#EF4444;color:#fff;font-weight:800;cursor:pointer">Log Out</button></div>
+<p style="color:var(--muted);font-size:.8rem;text-align:center">Fundi Near Me • Kampala, Uganda<br>Version 2.0 • ID check by PHOTO (no video call)</p>
+</div>
+
+<div class="top"><div class="logo"><span class="dot"></span>Fundi <span>Near Me</span></div><button class="gear" onclick="toggleSettings(true)">⚙️</button></div>
+<div class="wrap">
+<h2>Need a fundi?<br><span class="green">Find one near you.</span></h2>
+<div class="search"><input id="q" placeholder="Search by name, trade or area" oninput="render()"><button onclick="render()">⌖</button></div>
+<div class="box"><b>What do you need?</b><div class="grid" id="grid"></div>
+<div class="btnrow"><button class="btn btn-light" onclick="showAll()">See all fundis</button><a class="btn btn-green" href="./apply2.html">Join as a fundi</a></div></div>
+<div id="count" style="color:var(--muted);margin-top:14px"></div>
+<div id="list"></div>
+<div class="box" style="text-align:center"><b>Are you a fundi?</b><br><small style="color:var(--muted)">UGX 7,000 / month — First month FREE. ID check by PICTURE (no video call) — send ID photo on WhatsApp 0791649911.</small><br><br><a href="./apply2.html" class="btn btn-green" style="display:block">Join as a fundi →</a></div>
+</div>
+
+<div class="bottom"><div class="on" onclick="location.reload()"><span class="ic">🏠</span>Home</div><div onclick="showAll()"><span class="ic">🔍</span>Explore</div><div onclick="location.href='./apply2.html'"><span class="ic">👷</span>Join</div><div onclick="toggleSettings(true)"><span class="ic">💬</span>Contact</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",authDomain:"fundi-near-me-273c0.firebaseapp.com",projectId:"fundi-near-me-273c0",storageBucket:"fundi-near-me-273c0.firebasestorage.app",messagingSenderId:"729204944702",appId:"1:729204944702:web:27c89c9ecb453d8788866f"};
+const db=getFirestore(initializeApp(cfg));
+let all=[]; let active="All";
+const cats=[["All","🔍"],["Plumber","🚰"],["Electrician","⚡"],["Phone repair","📱"],["Computer repair","💻"],["Mechanic","🔧"],["Welder","🔥"],["Handyman","🛠️"],["Cleaning","🧹"],["Fumigation","🐜"],["Delivery","🛵"]];
+function esc(s){var d=document.createElement("div");d.textContent=String(s||"");return d.innerHTML}
+window.toggleSettings=function(o){document.getElementById("drawer").classList.toggle("open",o);document.getElementById("overlay").classList.toggle("show",o)};
+window.setTheme=function(m){localStorage.setItem("theme",m);applyTheme()};
+function applyTheme(){var m=localStorage.getItem("theme")||"dark";if(m==="auto") m=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.body.classList.toggle("light",m==="light");document.getElementById("t-dark").classList.toggle("on",(localStorage.getItem("theme")||"dark")==="dark");document.getElementById("t-light").classList.toggle("on",localStorage.getItem("theme")==="light");document.getElementById("t-auto").classList.toggle("on",localStorage.getItem("theme")==="auto")}
+applyTheme();
+function drawCats(){document.getElementById("grid").innerHTML=cats.map(c=>'<div class="cat '+(active===c[0]?"active":"")+'" onclick="pickCat(\''+c[0]+'\')"><span class="ic">'+c[1]+'</span>'+c[0]+'</div>').join("")}
+window.pickCat=function(t){active=t;drawCats();render();document.getElementById("list").scrollIntoView({behavior:"smooth"})};
+window.showAll=function(){active="All";drawCats();render();document.getElementById("list").scrollIntoView({behavior:"smooth"})};
+window.render=function(){
+var q=document.getElementById("q").value.toLowerCase().trim();
+var list=all.filter(f=>{if(active!=="All" && f.trade!==active) return false; if(!q) return true; return (f.name+" "+f.trade+" "+f.area+" "+(f.about||"")).toLowerCase().includes(q)});
+document.getElementById("count").textContent=list.length+" fundi(s) found"+(active!=="All"?" — "+active:"");
+var el=document.getElementById("list");
+if(!list.length){el.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">No fundi found. Try another search.</div>';return}
+el.innerHTML=list.map(f=>{var ph=String(f.phone||"").replace(/\D/g,""); if(ph.startsWith("0")) ph="256"+ph.slice(1); var wa="https://wa.me/"+ph+"?text="+encodeURIComponent("Hi "+f.name+", I found you on Fundi Near Me. I need "+(f.trade||"")); return '<div class="card"><h3>'+esc(f.name)+' <span style="background:#E4F5EB;color:#1A7A43;padding:3px 8px;border-radius:999px;font-size:.75rem">✓ Verified</span></h3><div class="meta">'+esc(f.trade)+' • 📍 '+esc(f.area)+'</div><div class="meta">'+esc(f.about||"")+'</div><div class="price">From UGX '+(f.price?Number(f.price).toLocaleString():'-')+'</div><div class="row"><a class="call" href="tel:'+ph+'">📞 Call</a><a class="wa" href="'+wa+'" target="_blank">💬 WhatsApp</a></div></div>'}).join("")};
+drawCats();
+try{var snap=await getDocs(collection(db,"fundis")); all=snap.docs.map(d=>({id:d.id,...d.data()}));}catch(e){all=[]}
+if(!all.length){all=[{name:"Demo Plumber",trade:"Plumber",area:"Ntinda, Kampala",phone:"256776749517",price:20000,about:"Fix leaking pipes, install taps."},{name:"Demo Electrician",trade:"Electrician",area:"Kisaasi, Kampala",phone:"256776749517",price:25000,about:"Wiring, sockets, lights."}]}
+render();
+</script>
+</body>
+</html>
