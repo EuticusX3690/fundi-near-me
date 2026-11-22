@@ -53,4 +53,40 @@ jobs:
               },
               StatusBar: {
                 style: 'DARK',
-                backgroundColor
+                backgroundColor: '#0F172A',
+                overlaysWebView: false
+              }
+            }
+          };
+          module.exports = config;
+          EOF
+
+      - name: Add location permission
+        run: |
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />|' android/app/src/main/AndroidManifest.xml
+
+      - name: Set app icon
+        run: |
+          sudo apt-get install -y imagemagick
+          R=android/app/src/main/res
+          rm -rf $R/mipmap-anydpi-v26
+          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            n=${d%%:*}
+            s=${d##*:}
+            for f in ic_launcher ic_launcher_round ic_launcher_foreground; do
+              convert app-512.png -resize ${s}x${s} $R/mipmap-$n/$f.png
+            done
+          done
+          cp app-512.png android/app/src/main/res/drawable/splash.png 2>/dev/null || true
+
+      - name: Build APK
+        run: |
+          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Fundi-Near-Me-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
