@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join as Fundi - Fundi Near Me</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#F4F7F5;color:#16203A}
+main{max-width:480px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.4rem}
+input,select{width:100%;padding:12px;border:2px solid #DDE4E0;border-radius:12px;font:inherit;margin-top:10px;box-sizing:border-box}
+button{width:100%;font:inherit;font-weight:700;border:0;border-radius:12px;padding:14px;margin-top:16px;min-height:48px;cursor:pointer;background:#167A45;color:#fff}
+button:disabled{opacity:.5}
+#msg{margin-top:12px;font-size:.95rem}
+.card{background:#fff;border:2px solid #DDE4E0;border-radius:16px;padding:16px}
+</style>
+</head>
+<body>
+<main>
+<h1>Join as a Fundi</h1>
+<p>Fill this in. Admin will verify you on WhatsApp, then you appear in the app.</p>
+<div class="card">
+<input id="name" placeholder="Full name e.g. Mwenda Euticus">
+<input id="phone" placeholder="Phone / WhatsApp e.g. 0791649111" type="tel">
+<input id="trade" placeholder="Trade e.g. Plumber">
+<input id="area" placeholder="Area e.g. Ntinda, Kampala">
+<input id="price" placeholder="Starting price UGX e.g. 20000" type="number">
+<button id="submit">Submit Application</button>
+<p id="msg"></p>
+</div>
+<p><a href="./index.htm">← Back to Find Fundi</a></p>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg = {
+  apiKey: "AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",
+  authDomain: "fundi-near-me-273c0.firebaseapp.com",
+  projectId: "fundi-near-me-273c0",
+  storageBucket: "fundi-near-me-273c0.firebasestorage.app",
+  messagingSenderId: "729204944702",
+  appId: "1:729204944702:web:27c89c9ecb453d8788866f"
+};
+const app = initializeApp(cfg), db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+$("submit").onclick = async () => {
+  const name = $("name").value.trim(), phone = $("phone").value.trim(), trade = $("trade").value.trim(), area = $("area").value.trim(), price = $("price").value.trim();
+  if (!name || !phone || !trade || !area) { $("msg").textContent = "Please fill name, phone, trade and area."; return; }
+  $("submit").disabled = true; $("msg").textContent = "Sending...";
+  try {
+    await addDoc(collection(db, "applications"), { name, phone, trade, area, price: price || "", status: "pending", createdAt: serverTimestamp() });
+    $("msg").textContent = "✅ Sent! Wait for admin approval on WhatsApp. You will appear in the app after approval.";
+    $("name").value = ""; $("phone").value = ""; $("trade").value = ""; $("area").value = ""; $("price").value = "";
+  } catch (e) { $("msg").textContent = "Failed: " + e.message; }
+  $("submit").disabled = false;
+};
+</script>
+</body>
+</html>
