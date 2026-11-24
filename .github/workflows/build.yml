@@ -21,10 +21,10 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          cp index.html fundis.json manifest.json sw.js firebase-config.js www/ 2>/dev/null || cp index.html www/
+          cp index.html fundis.json manifest.json sw.js firebase-config.js www/ 2>/dev/null || cp fundi-app.html www/
           cp *.png www/ 2>/dev/null || true
           cp *.html www/ 2>/dev/null || true
-          sed -i 's|<body|<body style="background:#0F172A"|' www/index.html || true
+          sed -i 's|<body|<body style="background:#0F172A"|' www/fundi-app.html || true
 
       - name: Create Android project
         run: |
