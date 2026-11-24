@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Fundi Near Me</title>
+<style>
+body{font-family:system-ui;background:#0F172A;color:white;margin:0;padding:16px}
+.card{background:#1E293B;padding:14px;border-radius:12px;margin-bottom:12px}
+button{border:none;padding:10px 14px;border-radius:8px;font-weight:700;margin-right:6px}
+.approve{background:#22C55E} .reject{background:#EF4444;color:white} .paid{background:#3B82F6;color:white}
+input{width:100%;padding:12px;border-radius:8px;border:none;margin-bottom:10px;background:#334155;color:white}
+</style>
+</head>
+<body>
+<h1>Admin Panel</h1>
+<div id="login">
+<input id="pin" type="password" placeholder="Enter PIN">
+<button onclick="login()" style="background:#22C55E;width:100%">Login</button>
+<p>PIN is 2026</p>
+</div>
+<div id="panel" style="display:none">
+<h2>⏳ Pending Fundis</h2>
+<div id="pending">Loading...</div>
+<h2>📅 Bookings / Owes</h2>
+<div id="bookings">Loading...</div>
+<button onclick="loadAll()" style="background:white;width:100%;margin-top:10px">Refresh</button>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",
+  authDomain: "fundi-near-me-273c0.firebaseapp.com",
+  projectId: "fundi-near-me-273c0",
+  storageBucket: "fundi-near-me-273c0.firebasestorage.app",
+  messagingSenderId: "729204944702",
+  appId: "1:729204944702:web:27c89c9ecb453d8788866f"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window.login = function(){
+  if(document.getElementById('pin').value === "2026"){
+    document.getElementById('login').style.display="none";
+    document.getElementById('panel').style.display="block";
+    loadAll();
+  } else { alert("Wrong PIN"); }
+}
+window.loadAll = async function(){
+  const q1 = query(collection(db, "fundis"), where("status","==","pending"));
+  const s1 = await getDocs(q1);
+  let h = "";
+  if(s1.empty) h = "No pending fundis.";
+  s1.forEach(d=>{
+    const f = d.data();
+    h += `<div class="card"><b>${f.name}</b> - ${f.skill} - ${f.area} - ${f.phone||''} ${f.lat ? `<br><small>📍 GPS: ${f.lat.toFixed(4)}, ${f.lng.toFixed(4)}</small>` : `<br><small>No GPS</small>`}<br><br><button class="approve" onclick="approve('${d.id}')">✅ Approve</button><button class="reject" onclick="reject('${d.id}')">❌ Reject</button></div>`;
+  });
+  document.getElementById('pending').innerHTML = h;
+  const s2 = await getDocs(collection(db, "bookings"));
+  let b = "";
+  if(s2.empty) b = "No bookings yet.";
+  s2.forEach(d=>{
+    const bk = d.data();
+    b += `<div class="card"><b>${bk.fundiName}</b> - Owes: UGX ${bk.fee} - ${bk.paid ? "✅ PAID" : "❌ UNPAID"}<br><br>${!bk.paid ? `<button class="paid" onclick="markPaid('${d.id}')">Mark as Paid</button>` : ""}</div>`;
+  });
+  document.getElementById('bookings').innerHTML = b;
+}
+window.approve = async function(id){ await updateDoc(doc(db,"fundis",id),{status:"approved"}); loadAll(); }
+window.reject = async function(id){ await updateDoc(doc(db,"fundis",id),{status:"rejected"}); loadAll(); }
+window.markPaid = async function(id){ await updateDoc(doc(db,"bookings",id),{paid:true}); loadAll(); }
+</script>
+</body>
+</html>
