@@ -21,10 +21,20 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          cp index.html fundis.json manifest.json sw.js firebase-config.js www/ 2>/dev/null || cp fundi-app.html www/
+          # Use index.html if it exists, else use fundi-app.html and rename to index.html
+          if [ -f index.html ]; then
+            echo "Found index.html"
+            cp index.html www/index.html
+          elif [ -f fundi-app.html ]; then
+            echo "Found fundi-app.html -> copying as index.html"
+            cp fundi-app.html www/index.html
+          else
+            echo "ERROR: No index.html or fundi-app.html found!"
+            ls -la
+            exit 1
+          fi
           cp *.png www/ 2>/dev/null || true
-          cp *.html www/ 2>/dev/null || true
-          sed -i 's|<body|<body style="background:#0F172A"|' www/fundi-app.html || true
+          ls -la www/
 
       - name: Create Android project
         run: |
@@ -65,19 +75,23 @@ jobs:
         run: |
           sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />|' android/app/src/main/AndroidManifest.xml
 
-      - name: Set app icon
+      - name: Set app icon (safe if no icon)
         run: |
-          sudo apt-get install -y imagemagick
-          R=android/app/src/main/res
-          rm -rf $R/mipmap-anydpi-v26
-          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
-            n=${d%%:*}
-            s=${d##*:}
-            for f in ic_launcher ic_launcher_round ic_launcher_foreground; do
-              convert app-512.png -resize ${s}x${s} $R/mipmap-$n/$f.png
+          if [ -f app-512.png ]; then
+            sudo apt-get install -y imagemagick
+            R=android/app/src/main/res
+            rm -rf $R/mipmap-anydpi-v26
+            for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+              n=${d%%:*}
+              s=${d##*:}
+              for f in ic_launcher ic_launcher_round ic_launcher_foreground; do
+                convert app-512.png -resize ${s}x${s} $R/mipmap-$n/$f.png
+              done
             done
-          done
-          cp app-512.png android/app/src/main/res/drawable/splash.png 2>/dev/null || true
+            cp app-512.png android/app/src/main/res/drawable/splash.png 2>/dev/null || true
+          else
+            echo "No app-512.png found, using default Capacitor icon - build will still succeed"
+          fi
 
       - name: Build APK
         run: |
