@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Near Me</title>
+<style>
+body{font-family:system-ui;background:#0F172A;color:white;margin:0;padding:16px}
+h1{font-size:22px}
+.card{background:#1E293B;padding:14px;border-radius:12px;margin-bottom:12px}
+button{background:#22C55E;color:#000;border:none;padding:10px 14px;border-radius:8px;font-weight:700;width:100%;margin-top:8px}
+button.blue{background:#3B82F6;color:white}
+button.gray{background:#475569;color:white}
+.badge{background:#FACC15;color:#000;padding:2px 8px;border-radius:20px;font-size:12px}
+.dist{background:#0EA5E9;color:white;padding:2px 8px;border-radius:20px;font-size:12px}
+input{width:100%;padding:12px;border-radius:8px;border:none;margin-bottom:10px;background:#334155;color:white}
+small{color:#94A3B8}
+</style>
+</head>
+<body>
+<h1>🔧 Fundi Near Me</h1>
+<p>Find trusted fundis near you in Kampala</p>
+
+<div class="card">
+<h3>Register as Fundi</h3>
+<input id="name" placeholder="Your Name e.g. John">
+<input id="skill" placeholder="Skill e.g. Plumber">
+<input id="area" placeholder="Area e.g. Ntinda">
+<input id="phone" placeholder="Phone e.g. 0700000000">
+<button class="blue" onclick="getFundiLocation()">📍 Use My Location (for fundi)</button>
+<p id="locMsg"><small>No location saved yet. Tap above to save GPS.</small></p>
+<button onclick="register()">Register</button>
+<p id="regMsg"></p>
+</div>
+
+<button class="blue" onclick="findNearMe()">📍 Find Fundis Near Me</button>
+<button class="gray" onclick="loadFundis(null)">Show All Fundis</button>
+<p id="nearMsg"><small>Tap "Find Fundis Near Me" to sort by distance.</small></p>
+
+<h2>Available Fundis</h2>
+<div id="list">Loading fundis...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUS8DXq0NAKrnEJNQg7MmSlOjqyobS8sg",
+  authDomain: "fundi-near-me-273c0.firebaseapp.com",
+  projectId: "fundi-near-me-273c0",
+  storageBucket: "fundi-near-me-273c0.firebasestorage.app",
+  messagingSenderId: "729204944702",
+  appId: "1:729204944702:web:27c89c9ecb453d8788866f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let fundiLat = null, fundiLng = null;
+let allFundis = [];
+
+function calcDistance(lat1, lon1, lat2, lon2){
+  if(lat1==null || lat2==null) return null;
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R*c;
+}
+
+window.getFundiLocation = function(){
+  document.getElementById('locMsg').innerHTML = "<small>Getting location...</small>";
+  if(!navigator.geolocation){ document.getElementById('locMsg').innerHTML = "<small>GPS not supported.</small>"; return; }
+  navigator.geolocation.getCurrentPosition((pos)=>{
+    fundiLat = pos.coords.latitude;
+    fundiLng = pos.coords.longitude;
+    document.getElementById('locMsg').innerHTML = `<small>✅ Location saved: ${fundiLat.toFixed(4)}, ${fundiLng.toFixed(4)}</small>`;
+  }, ()=>{
+    document.getElementById('locMsg').innerHTML = "<small>❌ Could not get location. Check GPS / permission. You can still register with Area name.</small>";
+  }, {enableHighAccuracy:true, timeout:10000});
+}
+
+window.register = async function(){
+  const name = document.getElementById('name').value.trim();
+  const skill = document.getElementById('skill').value.trim();
+  const area = document.getElementById('area').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  if(!name || !skill || !area){ alert("Fill name, skill, area"); return; }
+  await addDoc(collection(db, "fundis"), { name, skill, area, phone, status: "pending", lat: fundiLat, lng: fundiLng, createdAt: Date.now() });
+  document.getElementById('regMsg').innerText = "✅ Sent for approval. Admin will approve you soon.";
+  document.getElementById('name').value=""; document.getElementById('skill').value=""; document.getElementById('area').value=""; document.getElementById('phone').value="";
+  fundiLat=null; fundiLng=null;
+  document.getElementById('locMsg').innerHTML = "<small>No location saved yet.</small>";
+}
+
+function render(list, userLat, userLng){
+  const el = document.getElementById('list');
+  if(!list.length){ el.innerHTML = "No approved fundis yet."; return; }
+  let html = "";
+  list.forEach(item=>{
+    const f = item.data; const id = item.id;
+    let distText = "";
+    if(userLat!=null && f.lat!=null && f.lng!=null){
+      const d = calcDistance(userLat, userLng, f.lat, f.lng);
+      if(d!=null) distText = `<span class="dist">📍 ${d < 1 ? (d*1000).toFixed(0)+" m away" : d.toFixed(1)+" km away"}</span>`;
+    }
+    html += `<div class="card"><b>${f.name}</b> <span class="badge">${f.skill}</span> ${distText}<br>📍 ${f.area} • 📞 ${f.phone||''}<br><button onclick="book('${id}','${f.name}')">Book - UGX 2,000 fee applies to fundi</button></div>`;
+  });
+  el.innerHTML = html;
+}
+
+window.loadFundis = async function(userLoc){
+  document.getElementById('list').innerHTML = "Loading fundis...";
+  const q = query(collection(db, "fundis"), where("status","==","approved"));
+  const snap = await getDocs(q);
+  allFundis = [];
+  snap.forEach(d=>{ allFundis.push({id:d.id, data:d.data()}); });
+  if(userLoc){
+    allFundis.forEach(item=>{
+      item.dist = (item.data.lat!=null && item.data.lng!=null) ? calcDistance(userLoc.lat, userLoc.lng, item.data.lat, item.data.lng) : 99999;
+    });
+    allFundis.sort((a,b)=>a.dist-b.dist);
+    render(allFundis, userLoc.lat, userLoc.lng);
+  } else {
+    render(allFundis, null, null);
+  }
+}
+
+window.findNearMe = function(){
+  document.getElementById('nearMsg').innerHTML = "<small>Getting your location...</small>";
+  if(!navigator.geolocation){ document.getElementById('nearMsg').innerHTML = "<small>GPS not supported.</small>"; return; }
+  navigator.geolocation.getCurrentPosition((pos)=>{
+    const lat = pos.coords.latitude; const lng = pos.coords.longitude;
+    document.getElementById('nearMsg').innerHTML = `<small>✅ Your location: ${lat.toFixed(4)}, ${lng.toFixed(4)} — Sorted nearest first.</small>`;
+    loadFundis({lat, lng});
+  }, ()=>{
+    document.getElementById('nearMsg').innerHTML = "<small>❌ Location denied. Showing all fundis.</small>";
+    loadFundis(null);
+  }, {enableHighAccuracy:true, timeout:10000});
+}
+
+window.book = async function(id, name){
+  if(!confirm("Book "+name+"?")) return;
+  await addDoc(collection(db, "bookings"), { fundiId: id, fundiName: name, fee: 2000, paid: false, createdAt: Date.now() });
+  alert("✅ Booked "+name+". Fundi will contact you. Fundi owes UGX 2,000 commission.");
+}
+loadFundis(null);
+</script>
+</body>
+</html>
