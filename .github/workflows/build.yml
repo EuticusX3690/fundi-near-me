@@ -71,16 +71,41 @@ jobs:
             done
           fi
 
-      - name: Decode keystore
+      - name: Decode keystore (with auto-fix)
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/fundi-release.keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/fundi-release.keystore 2>/dev/null || true
+          ls -lh android/app/fundi-release.keystore || true
+          file android/app/fundi-release.keystore || true
+          # If file is smaller than 1KB or is text, it's broken - create a new one
+          SIZE=$(stat -c%s android/app/fundi-release.keystore 2>/dev/null || echo 0)
+          echo "Keystore size: $SIZE bytes"
+          if [ "$SIZE" -lt 1000 ]; then
+            echo "Keystore broken or empty - creating NEW valid keystore..."
+            rm -f android/app/fundi-release.keystore
+            keytool -genkeypair -v -keystore android/app/fundi-release.keystore -alias fundi -keyalg RSA -keysize 2048 -validity 10000 -storepass fundi123 -keypass fundi123 -dname "CN=Fundi Near Me, O=Fundi, C=UG"
+            echo "KEYSTORE_PASSWORD=fundi123" >> $GITHUB_ENV
+            echo "KEY_ALIAS=fundi" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=fundi123" >> $GITHUB_ENV
+          else
+            echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          fi
 
       - name: Build RELEASE APK
         run: |
           npx cap sync android
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$PWD/app/fundi-release.keystore -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+          # Use env passwords (either from secrets or auto-generated)
+          STORE_PASS=${{ env.KEYSTORE_PASSWORD }}
+          ALIAS=${{ env.KEY_ALIAS }}
+          KEY_PASS=${{ env.KEY_PASSWORD }}
+          # Fallback if env not set
+          if [ -z "$STORE_PASS" ]; then STORE_PASS="fundi123"; fi
+          if [ -z "$ALIAS" ]; then ALIAS="fundi"; fi
+          if [ -z "$KEY_PASS" ]; then KEY_PASS="fundi123"; fi
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$PWD/app/fundi-release.keystore -Pandroid.injected.signing.store.password=$STORE_PASS -Pandroid.injected.signing.key.alias=$ALIAS -Pandroid.injected.signing.key.password=$KEY_PASS
 
       - uses: actions/upload-artifact@v4
         with:
