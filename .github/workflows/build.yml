@@ -21,20 +21,15 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          # Use index.html if it exists, else use fundi-app.html and rename to index.html
           if [ -f index.html ]; then
-            echo "Found index.html"
             cp index.html www/index.html
           elif [ -f fundi-app.html ]; then
-            echo "Found fundi-app.html -> copying as index.html"
             cp fundi-app.html www/index.html
           else
-            echo "ERROR: No index.html or fundi-app.html found!"
-            ls -la
+            echo "ERROR: No index.html found!"
             exit 1
           fi
           cp *.png www/ 2>/dev/null || true
-          ls -la www/
 
       - name: Create Android project
         run: |
@@ -48,24 +43,10 @@ jobs:
             appName: 'Fundi Near Me',
             webDir: 'www',
             backgroundColor: '#0F172A',
-            android: {
-              allowMixedContent: true
-            },
+            android: { allowMixedContent: true },
             plugins: {
-              SplashScreen: {
-                launchShowDuration: 2000,
-                launchAutoHide: true,
-                backgroundColor: '#0F172A',
-                showSpinner: false,
-                androidScaleType: 'CENTER_CROP',
-                splashFullScreen: true,
-                splashImmersive: true
-              },
-              StatusBar: {
-                style: 'DARK',
-                backgroundColor: '#0F172A',
-                overlaysWebView: false
-              }
+              SplashScreen: { launchShowDuration: 2000, launchAutoHide: true, backgroundColor: '#0F172A', showSpinner: false },
+              StatusBar: { style: 'DARK', backgroundColor: '#0F172A', overlaysWebView: false }
             }
           };
           module.exports = config;
@@ -75,7 +56,7 @@ jobs:
         run: |
           sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />|' android/app/src/main/AndroidManifest.xml
 
-      - name: Set app icon (safe if no icon)
+      - name: Set app icon
         run: |
           if [ -f app-512.png ]; then
             sudo apt-get install -y imagemagick
@@ -88,19 +69,20 @@ jobs:
                 convert app-512.png -resize ${s}x${s} $R/mipmap-$n/$f.png
               done
             done
-            cp app-512.png android/app/src/main/res/drawable/splash.png 2>/dev/null || true
-          else
-            echo "No app-512.png found, using default Capacitor icon - build will still succeed"
           fi
 
-      - name: Build APK
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/fundi-release.keystore
+
+      - name: Build RELEASE APK
         run: |
           npx cap sync android
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$PWD/app/fundi-release.keystore -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: Fundi-Near-Me-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
