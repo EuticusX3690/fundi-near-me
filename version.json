@@ -1,5 +1,5 @@
 {
-  "version": "2.2",
+  "version": "2.3",
   "apkUrl": "https://euticusx3690.github.io/fundi-near-me/fundi-near-me.apk",
-  "notes": "Safer app: fundis now login with a password, ID photo check, My Bookings page, job finished and rating, and bug fixes."
+  "notes": "New: Admin All Fundis + Clients list, Client phone login, Fundi profile pics, 2-column home, Phone hidden until fundi accepts."
 }
